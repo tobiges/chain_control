@@ -7,7 +7,7 @@ from acme.specs import EnvironmentSpec
 from acme.jax import utils
 from beartype import beartype
 from ..utils import tree_insert_IMPURE
-
+from collections import OrderedDict
 
 class AbstractSampler(ABC):
     pass 
@@ -41,7 +41,7 @@ class TransitionAccumulation:
 
 @struct.dataclass
 class ReplaySample:
-    obs: np.ndarray
+    obs: OrderedDict
     action: np.ndarray
     rew: np.ndarray
     done: np.ndarray

@@ -65,12 +65,12 @@ def collect_exhaust_source(
     source: ObservationReferenceSource,
     controller: AbstractController,
     model: AbstractModel = None, 
-    ) -> ReplaySample:
+    ):
 
     time_limit, control_timestep, ts = _checks_and_infos(env)
 
     if model:
-
+        print("i found model")
         # grab delay of Mujoco Env before overwriting
         delay = env.delay 
 
@@ -86,15 +86,15 @@ def collect_exhaust_source(
     # collect performance of controller in environment
     pbar = tqdm(range(N), desc="Reference Iterator")
     iterators = []
-    for i_actor in pbar:
+    for i_actor in pbar: # 2 iterations
         source.change_reference_of_actor(i_actor)
         iterator = collect(env, controller, ts)
         iterators.append(iterator)
 
     # concat samples 
-    sample = concat_iterators(*iterators)
+    # sample = concat_iterators(*iterators)
 
-    return sample 
+    return iterators
 
 
 def collect(env: dm_env.Environment, controller: AbstractController, ts: jnp.ndarray):
