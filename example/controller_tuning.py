@@ -4,10 +4,11 @@ import optax
 from cc.collect import collect_reference_source, collect_exhaust_source, collect
 from cc import save, load
 from cc.controller import create_pi_controller, LinearController, LinearControllerOptions
+from cc.env.model_based_env import ModelBasedEnv
 from cc.env.wrappers import AddReferenceObservationWrapper, RecordVideoWrapper
 from cc.env import make_env
 from cc.train import TrainingOptionsController, train_controller
-from cc.utils.utils import generate_ts
+from cc.utils.utils import generate_ts, extract_timelimit_timestep_from_env
 
 time_limit = 10.0
 control_timestep = 0.01
@@ -16,7 +17,6 @@ ts = generate_ts(time_limit, control_timestep)
 # Environment creation
 env = make_env("two_segments_v1", random=1, time_limit=time_limit,
                control_timestep=control_timestep)
-
 
 # Model Loading
 model = load("../docs/model_for_two_segments_v1.pkl")
@@ -35,44 +35,20 @@ training_options = TrainingOptionsController(
 )
 
 controller, losses = train_controller(controller, source, training_options)
+time_limit, control_timestep, ts = extract_timelimit_timestep_from_env(env)
+
+real_env_w_source = ModelBasedEnv(env, model, time_limit=time_limit, control_timestep=control_timestep) # <--- collect 
+real_env_w_source = AddReferenceObservationWrapper(real_env_w_source, source)
+real_env_iterator = collect(env=real_env_w_source, controller=controller, ts=ts)
+real_env_sample = next(real_env_iterator)
 
 
-# Testing
-env_w_source = AddReferenceObservationWrapper(env, source)
+print("preparing plots")
 
-replay_sample = collect_exhaust_source(
-    env=env_w_source, source=source, controller=controller, model=model)
-
-# OrderedDictionary ["obs" + "ref"] -> OrderedDictionary ["xpos of segment end"] -> Array shape [1, 1001, 1]
-
-print(replay_sample.obs.keys())
-
-print(replay_sample.obs["obs"].keys())
-print(type(replay_sample.obs["obs"]))
-
-print(replay_sample.obs["ref"].keys())
-print(type(replay_sample.obs["ref"]))
-print(type(replay_sample.obs["ref"]["xpos_of_segment_end"]))
-print(replay_sample.obs["ref"]["xpos_of_segment_end"].shape)
-
-print("shapes")
-print(replay_sample.action.shape)
-print(replay_sample.rew.shape)
-print(replay_sample.done.shape)
-
-print(len(replay_sample.obs["obs"]["xpos_of_segment_end"]))
-
-
-# First
-plt.plot(replay_sample.obs["obs"]
-         ["xpos_of_segment_end"][0], label="observation 1")
-plt.plot(replay_sample.obs["ref"]
-         ["xpos_of_segment_end"][0], label="reference 1")
-
-plt.plot(replay_sample.obs["obs"]
-         ["xpos_of_segment_end"][1], label="observation 2")
-plt.plot(replay_sample.obs["ref"]
-         ["xpos_of_segment_end"][1], label="reference 2")
+plt.plot(real_env_sample.obs["obs"]
+         ["xpos_of_segment_end"][0], label="observation environment")
+plt.plot(real_env_sample.obs["ref"]
+         ["xpos_of_segment_end"][0], label="reference environment")
 
 plt.legend()
 plt.show()
