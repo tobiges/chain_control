@@ -19,7 +19,9 @@ from .source import (
     draw_u_from_cosines,
     draw_u_from_gaussian_process,
 )
+import pprint
 
+import numpy
 
 def concat_iterators(*iterators) -> ReplaySample:
     return tree_concat([next(iterator) for iterator in iterators], True)
@@ -76,9 +78,58 @@ def collect_exhaust_source(
 
     # concat samples
     sample = concat_iterators(*iterators)
+    # concat samples
+    sample = concat_iterators(*iterators)
 
     return sample
 
+def collect_multiple(env: dm_env.Environment,
+    source: ObservationReferenceSource,
+    controllers: list,):
+
+    replay_sample = None
+
+    pp = pprint.PrettyPrinter(indent=4)
+    numpy.set_printoptions(threshold=5)
+
+    for controller in controllers:
+        real_sample, _ = collect_combined(env, source, controller)
+
+        if replay_sample is not None:
+            #pp.pprint(replay_sample)
+            #pp.pprint(replay_sample["obs"]["xpos_of_segment_end"])
+            #pp.pprint(real_sample["obs"]["xpos_of_segment_end"][0])
+            #[1, 1001, 1]
+            replay_sample.obs["obs"]["xpos_of_segment_end"] = numpy.append(replay_sample.obs["obs"]["xpos_of_segment_end"], real_sample.obs["obs"]["xpos_of_segment_end"], axis=0)
+            replay_sample.extras["aggr_rew"].append(numpy.sum(numpy.abs(real_sample.rew[0])))
+        else:
+            replay_sample = real_sample
+            real_sample.extras["aggr_rew"] = [numpy.sum(numpy.abs(real_sample.rew[0]))]
+
+
+    return replay_sample
+
+def collect_combined(env: dm_env.Environment,
+    source: ObservationReferenceSource,
+    controller: AbstractController,
+    model: AbstractModel = None,):
+
+    iterators = []
+
+    env_ref = AddRefSignalRewardFnWrapper(env, source)
+    env_iter = collect(env_ref, controller)
+    iterators.append(next(env_iter))
+
+    if model:
+        env.reset()
+        model_env = ReplacePhysicsByModelWrapper(env, model)
+        model_env_ref = AddRefSignalRewardFnWrapper(model_env, source)
+        model_env_iter = collect(model_env_ref, controller)
+        iterators.append(next(model_env_iter))
+    else:
+        iterators.append(None)
+
+    return iterators[0], iterators[1]
 
 def collect(env: dm_env.Environment, controller: AbstractController):
 
