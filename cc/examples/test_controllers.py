@@ -11,7 +11,6 @@ from .pid_controller import make_pid_controller
 def dummy_env():
     return make_env("two_segments_v1", random=1)
 
-
 def test_controllers():
     env = dummy_env()
     source, _ = sample_feedforward_collect_and_make_source(env, seeds=[0])
