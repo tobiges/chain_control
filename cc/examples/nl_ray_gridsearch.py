@@ -22,8 +22,7 @@ import jax.numpy as jnp
 from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
 import pprint
 import numpy
-
-
+from cc.examples.neural_ode_controller_compact_example import make_neural_ode_controller
 
 
 def force_cpu_backend():
@@ -48,25 +47,38 @@ def train_and_judge(config) -> float:
         u_transform=jnp.arctan
     )
 
-    model = eqx.tree_deserialise_leaves("/data/ba54womo/chain_control/cc/examples/created_model.eqx", model)
+    model = eqx.tree_deserialise_leaves(
+        "/data/ba54womo/chain_control/cc/examples/env1_model.eqx", model)
 
     source, _ = sample_feedforward_collect_and_make_source(env, seeds=[20])
-    source = constant_after_transform_source(source, after_T = 3.0)
+    source = constant_after_transform_source(source, after_T=3.0)
 
     env_w_source = AddRefSignalRewardFnWrapper(env, source)
 
-    controller = make_pid_controller(config["p"], config["i"], config["d"], env.control_timestep)
+    controller = make_neural_ode_controller(
+        env_w_source.observation_spec(),
+        env.action_spec(),
+        env.control_timestep,
+        state_dim=config["state_dim"],
+        f_width_size=config["f_width_size"],
+        f_depth=config["f_depth"],
+        g_width_size=config["g_width_size"],
+        g_depth=config["g_depth"],
+    )
 
     controller_dataloader = make_dataloader(
-         source.get_references_for_optimisation(),
-         jrand.PRNGKey(1,),
-         n_minibatches=1
+        source.get_references_for_optimisation(),
+        jrand.PRNGKey(1,),
+        n_minibatches=1
     )
+
+
+    optimizer = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(1e-3))
 
 
     controller_train_options = TrainingOptionsController(
-        controller_dataloader, optax.adam(3e-3), 
-    )
+    controller_dataloader, optimizer, 
+)
 
     controller_trainer = ModelControllerTrainer(
         model, controller, controller_train_options=controller_train_options, 
@@ -76,16 +88,13 @@ def train_and_judge(config) -> float:
     controller_trainer.run(500)
 
     fitted_controller = controller_trainer.trackers[0].best_model()
-    controller_performance_sample = collect_exhaust_source(env_w_source, fitted_controller)
-    import matplotlib.pyplot as plt 
-    plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label="observation")
-    plt.plot(controller_performance_sample.obs["ref"]["xpos_of_segment_end"][0], label="reference")
-    plt.legend()
-    plt.savefig("out.png")
-    return np.sum(np.abs(controller_performance_sample.rew))
+    controller_performance_sample = collect_exhaust_source(
+        env_w_source, fitted_controller)
+    return np.sum(np.abs(controller_performance_sample.rew)))
+
 
 def objective(config):
-    # force_cpu_backend()
+    force_cpu_backend()
     # Otherwise the stdout will be messy
     disable_tqdm()
     disable_compile_warn()
@@ -96,10 +105,17 @@ def objective(config):
 ray.init()
 
 search_space = {
-    "p": tune.grid_search(np.linspace(0.0, 1.0, 21)),
-    "i": tune.grid_search(np.linspace(0.0, 1.0, 21)),
-    "d": tune.grid_search(np.linspace(0.0, 1.0, 21)),
+    "state_dim": tune.grid_search([5]),
+    "f_width_size": tune.grid_search([1]),
+    "f_depth": tune.grid_search([25]),
+    "g_width_size": tune.grid_search([25]),
+    "g_depth": tune.grid_search([10]),
 }
+#state_dim = 5
+#f_width_size = 1
+#f_depth = 25
+#g_width_size = 25
+#g_depth = 10
 
 tuner = tune.Tuner(
     tune.with_resources(objective, {"cpu": 1}),
