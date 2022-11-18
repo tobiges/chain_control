@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 pp = pprint.PrettyPrinter(indent=4)
 numpy.set_printoptions(threshold=5)
 
-## Parameters
+###### Parameters#################
 
 env_num = 1
 
@@ -35,7 +35,14 @@ f_depth = 25
 g_width_size = 25
 g_depth = 10
 
-#######
+# Baseline:
+# state_dim = 5
+# f_width_size = 10
+# f_depth = 0
+# g_width_size = 10
+# g_depth = 0
+
+########################
 
 env1 = make_env(f"two_segments_v1", random=1, time_limit=10.0, control_timestep=0.01)
 
@@ -86,7 +93,8 @@ controller_trainer1 = ModelControllerTrainer(
 controller_trainer1.run(iterations)
 
 fitted_controller1 = controller_trainer1.trackers[0].best_model()
-controller_performance_sample1 = collect_exhaust_source(env1_w_source, fitted_controller1)
+env1_w_video = RecordVideoWrapper(env1_w_source, width=1280, height=720, cleanup_imgs=False)
+controller_performance_sample1 = collect_exhaust_source(env1_w_video, fitted_controller1)
 
 plt.plot(controller_performance_sample1.obs["obs"]["xpos_of_segment_end"][0], label="obs")
 plt.plot(controller_performance_sample1.obs["ref"]["xpos_of_segment_end"][0], label="reference")

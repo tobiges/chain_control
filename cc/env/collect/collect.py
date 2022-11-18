@@ -44,7 +44,7 @@ def collect_exhaust_source(
     controller: AbstractController,
 ) -> ReplaySample:
 
-    assert isinstance(env, AddRefSignalRewardFnWrapper)
+    # assert isinstance(env, AddRefSignalRewardFnWrapper)
     source = env._source
 
     N = tree_shape(source._yss)

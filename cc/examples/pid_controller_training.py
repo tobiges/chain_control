@@ -20,6 +20,7 @@ numpy.set_printoptions(threshold=5)
 
 env_num = 1
 # p, i, d = 10.0, -4.0, 2.0
+# p, i, d = 0.01, 0.0, 0.0
 p, i, d = 1.0, 0.5, 0.0
 
 ref = [20]
@@ -74,8 +75,8 @@ controller_trainer = ModelControllerTrainer(
 controller_trainer.run(iterations)
 
 fitted_controller = controller_trainer.trackers[0].best_model()
-# env_w_video = RecordVideoWrapper(env_w_source, width=1280, height=720, cleanup_imgs=False)
-controller_performance_sample = collect_exhaust_source(env_w_source, fitted_controller)
+env_w_video = RecordVideoWrapper(env_w_source, width=1280, height=720, cleanup_imgs=False)
+controller_performance_sample = collect_exhaust_source(env_w_video, fitted_controller)
 
 pp.pprint(controller_performance_sample)
 
