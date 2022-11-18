@@ -45,7 +45,7 @@ def collect_exhaust_source(
     observers: Sequence[EnvLoopObserver] = (),
 ) -> Tuple[ReplaySample, dict]:
 
-    assert isinstance(env, AddRefSignalRewardFnWrapper)
+    # assert isinstance(env, AddRefSignalRewardFnWrapper)
     source = env._source
 
     N = tree_shape(source._yss)
