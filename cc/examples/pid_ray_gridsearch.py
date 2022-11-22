@@ -23,6 +23,7 @@ from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
 import pprint
 import numpy
 
+import matplotlib.pyplot as plt 
 
 
 
@@ -77,6 +78,13 @@ def train_and_judge(config) -> float:
 
     fitted_controller = controller_trainer.trackers[0].best_model()
     controller_performance_sample = collect_exhaust_source(env_w_source, fitted_controller)
+
+    plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label=f"observation")
+    plt.plot(controller_performance_sample.obs["ref"]["xpos_of_segment_end"][0], label="reference")
+    plt.legend()
+    plt.savefig(f"out_{config['p']}_{config['i']}_{config['d']}.png")
+    plt.clf()
+
     return np.sum(np.abs(controller_performance_sample.rew))
 
 def objective(config):
@@ -91,9 +99,9 @@ def objective(config):
 ray.init()
 
 search_space = {
-    "p": tune.grid_search([1.0]),
-    "i": tune.grid_search([0.5]),
-    "d": tune.grid_search([0.0]),
+    "p": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
+    "i": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
+    "d": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
 }
 
 tuner = tune.Tuner(

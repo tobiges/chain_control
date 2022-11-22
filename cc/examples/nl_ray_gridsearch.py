@@ -23,7 +23,7 @@ from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
 import pprint
 import numpy
 from cc.examples.neural_ode_controller_compact_example import make_neural_ode_controller
-
+import matplotlib.pyplot as plt 
 
 def force_cpu_backend():
     from jax import config
@@ -90,7 +90,12 @@ def train_and_judge(config) -> float:
     fitted_controller = controller_trainer.trackers[0].best_model()
     controller_performance_sample = collect_exhaust_source(
         env_w_source, fitted_controller)
-    return np.sum(np.abs(controller_performance_sample.rew)))
+
+    plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label=f"state size {config['state_dim']}")
+    plt.legend()
+    plt.savefig(f"out_{config['state_dim']}_{config['f_width_size']}_{config['f_depth']}_{config['g_width_size']}_{config['g_depth']}.png")
+    plt.clf()
+    return np.sum(np.abs(controller_performance_sample.rew))
 
 
 def objective(config):
@@ -105,7 +110,7 @@ def objective(config):
 ray.init()
 
 search_space = {
-    "state_dim": tune.grid_search([5]),
+    "state_dim": tune.grid_search([5, 10, 15, 20, 30, 40, 50]),
     "f_width_size": tune.grid_search([1]),
     "f_depth": tune.grid_search([25]),
     "g_width_size": tune.grid_search([25]),

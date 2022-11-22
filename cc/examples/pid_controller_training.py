@@ -13,6 +13,7 @@ from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
 import equinox as eqx
 import pprint
 import numpy
+import equinox as eqx
 pp = pprint.PrettyPrinter(indent=4)
 numpy.set_printoptions(threshold=5)
 
@@ -49,6 +50,7 @@ model = make_neural_ode_model(
 
 model = eqx.tree_deserialise_leaves("env1_model.eqx", model)
 
+# env2 = make_env(f"two_segments_v1", random=1, time_limit=10.0, control_timestep=0.01)
 source, _ = sample_feedforward_collect_and_make_source(env, seeds=ref)
 source = constant_after_transform_source(source, after_T = constant_after)
 
@@ -75,18 +77,21 @@ controller_trainer = ModelControllerTrainer(
 controller_trainer.run(iterations)
 
 fitted_controller = controller_trainer.trackers[0].best_model()
-env_w_video = RecordVideoWrapper(env_w_source, width=1280, height=720, cleanup_imgs=False)
-controller_performance_sample = collect_exhaust_source(env_w_video, fitted_controller)
 
-pp.pprint(controller_performance_sample)
+eqx.tree_serialise_leaves("controller.eqx", fitted_controller)
 
-import matplotlib.pyplot as plt 
+# env_w_video = RecordVideoWrapper(env_w_source, width=1280, height=720, cleanup_imgs=False)
+# controller_performance_sample = collect_exhaust_source(env_w_video, fitted_controller)
 
-plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label="observation")
-plt.plot(controller_performance_sample.obs["ref"]["xpos_of_segment_end"][0], label="reference")
-plt.legend()
-plt.savefig(f"images/pid_{p}_{i}_{d}_ref{ref}_v{env_num}_ca{constant_after}_it{iterations}.png")
+# pp.pprint(controller_performance_sample)
+
+# import matplotlib.pyplot as plt 
+
+# plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label="observation")
+# plt.plot(controller_performance_sample.obs["ref"]["xpos_of_segment_end"][0], label="reference")
+# plt.legend()
+# plt.savefig(f"images/pid_{p}_{i}_{d}_ref{ref}_v{env_num}_ca{constant_after}_it{iterations}.png")
 
 
-print(np.sum(np.abs(controller_performance_sample.rew)))
-print(np.sum(np.abs(controller_performance_sample.rew)) / len(controller_performance_sample.rew[0]))
+# print(np.sum(np.abs(controller_performance_sample.rew)))
+# print(np.sum(np.abs(controller_performance_sample.rew)) / len(controller_performance_sample.rew[0]))

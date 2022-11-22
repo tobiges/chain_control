@@ -5,3 +5,9 @@ __pycache__
 .pytest*
 *.pkl
 *.eqx
+
+results
+
+cc/examples/ray_results/
+ray_results/
+cc/examples/images

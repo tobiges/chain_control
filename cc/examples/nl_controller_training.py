@@ -44,7 +44,7 @@ g_depth = 10
 
 ########################
 
-env1 = make_env(f"two_segments_v1", random=1, time_limit=10.0, control_timestep=0.01)
+env1 = make_env(f"two_segments_v1", random=1, time_limit=20.0, control_timestep=0.01)
 
 
 model1 = make_neural_ode_model(
@@ -61,8 +61,9 @@ model1 = make_neural_ode_model(
 
 model1 = eqx.tree_deserialise_leaves("env1_model.eqx", model1)
 
-source1, _ = sample_feedforward_collect_and_make_source(env1, seeds=[ref])
-source1 = constant_after_transform_source(source1, after_T = constant_after)
+env2 = make_env(f"two_segments_v1", random=1, time_limit=10.0, control_timestep=0.01)
+source1, _ = sample_feedforward_collect_and_make_source(env2, seeds=[ref])
+source1 = constant_after_transform_source(source1, after_T = constant_after, new_ts = env1.ts)
 env1_w_source = AddRefSignalRewardFnWrapper(env1, source1)
 
 
@@ -93,8 +94,8 @@ controller_trainer1 = ModelControllerTrainer(
 controller_trainer1.run(iterations)
 
 fitted_controller1 = controller_trainer1.trackers[0].best_model()
-env1_w_video = RecordVideoWrapper(env1_w_source, width=1280, height=720, cleanup_imgs=False)
-controller_performance_sample1 = collect_exhaust_source(env1_w_video, fitted_controller1)
+# env1_w_video = RecordVideoWrapper(env1_w_source, width=1280, height=720, cleanup_imgs=False)
+controller_performance_sample1 = collect_exhaust_source(env1_w_source, fitted_controller1)
 
 plt.plot(controller_performance_sample1.obs["obs"]["xpos_of_segment_end"][0], label="obs")
 plt.plot(controller_performance_sample1.obs["ref"]["xpos_of_segment_end"][0], label="reference")
