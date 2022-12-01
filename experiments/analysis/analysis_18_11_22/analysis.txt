@@ -1,0 +1,46 @@
+- reference_becomes_constant_after_T=1.0; Wie verändert das das Schwingverhalten gegen t->T? Wie verändert das den MSE/Reward?
+Reward ist bei langem Schwingen nicht gut.
+Siehe pid_images/...ca1.0-7.0
+Siehe nl_images/
+
+- (Non?)LinearController mit state-size groß (z.B. 20,30,50)
+-> plot 👍
+Number of trials: 7/7 (7 TERMINATED)
++-----------------------+------------+-----------------------+-----------+----------------+-----------+----------------+-------------+--------+------------------+-----------+
+| Trial name            | status     | loc                   |   f_depth |   f_width_size |   g_depth |   g_width_size |   state_dim |   iter |   total time (s) |   _metric |
+|-----------------------+------------+-----------------------+-----------+----------------+-----------+----------------+-------------+--------+------------------+-----------|
+| objective_5967b_00000 | TERMINATED | 10.203.25.110:1265391 |        25 |              1 |        10 |             25 |           5 |      1 |          86.9062 |   2225.69 |
+| objective_5967b_00001 | TERMINATED | 10.203.25.110:1265487 |        25 |              1 |        10 |             25 |          10 |      1 |          89.3111 |   4760.93 |
+| objective_5967b_00002 | TERMINATED | 10.203.25.110:1265489 |        25 |              1 |        10 |             25 |          15 |      1 |          89.0174 |   5822.24 |
+| objective_5967b_00003 | TERMINATED | 10.203.25.110:1265491 |        25 |              1 |        10 |             25 |          20 |      1 |          88.8411 |   3821.73 |
+| objective_5967b_00004 | TERMINATED | 10.203.25.110:1265493 |        25 |              1 |        10 |             25 |          30 |      1 |          88.9479 |   1948.1  |
+| objective_5967b_00005 | TERMINATED | 10.203.25.110:1265495 |        25 |              1 |        10 |             25 |          40 |      1 |          90.5816 |   2723.89 |
+| objective_5967b_00006 | TERMINATED | 10.203.25.110:1265497 |        25 |              1 |        10 |             25 |          50 |      1 |          94.1331 |  14593.9  |
++-----------------------+------------+-----------------------+-----------+----------------+-----------+----------------+-------------+--------+------------------+-----------+
+
+
+- `train_fn`: Loss-Werte plotten, Konvergenz-Verhalten bewerten in Relation zu `n_gradient_steps`
+👍 loss -> niedrig kovergent
+
+
+- Zugriff auf Workstation. Grid-Search planen und ausführen auf Workstation. Tool ist `ray`.
+👍
+
+- Videos von dem besten und baseline controller erstellen
+TBD
+
+- Wie verändert sich die Controller Performance, wenn man von "v1" zu "v2" wechselt?
+👍
+
+- Wie gut ist die Controller Performance, wenn man den Controller in "v1" trainiert und in "v2" evaluiert? (oder umgekehrt)
+👍
+
+- Wie verändert sich das Verhältnis von Controller Performance in Model zu Controller Performance in Env während man Controller Parameter ändert?
+????
+
+- Wie stark hängt die Controller Performance von der Initialisierung der Controller Parameter (seed-Parameter des Controllers) ab? (Das sollte einfach ein seed-Parameter in einer Gridsearch auf der Workstation werden)
+
+
+--------
+Fragen: 
+ - Time Limit von 10.0 -> 20.0 ändert Verhalten von 0.0-10.0?

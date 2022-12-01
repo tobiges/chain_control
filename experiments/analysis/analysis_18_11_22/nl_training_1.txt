@@ -1,0 +1,19 @@
+    "state_dim": tune.grid_search([5, 10, 25]),
+    "f_width_size": tune.grid_search([1, 10, 25]),
+    "f_depth": tune.grid_search([1, 10, 25]),
+    "g_width_size": tune.grid_search([1, 10, 25]),
+    "g_depth": tune.grid_search([1, 10, 25]),
+
+best:
+fdepth
+25.000
+fwidth size
+1.0000
+g depth
+10.000
+g with size
+25.000
+state dim
+5.0000
+metric
+2225.7

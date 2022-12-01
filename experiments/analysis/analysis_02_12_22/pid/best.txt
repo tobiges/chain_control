@@ -1,0 +1,4 @@
+[I 2022-12-01 23:43:52,191] Trial 109 finished with value: 20203.92578125 and parameters: {'p': 1.1172074157840681, 'i': -0.04870563067113376, 'd': -0.856048440840885}. Best is trial 90 with value: 20013.345703125.
+{'d': -0.6717224877811121, 'i': 0.4514747780068583, 'p': 1.0272013905798925}
+20013.345703125
+FrozenTrial(number=90, values=[20013.345703125], datetime_start=datetime.datetime(2022, 12, 1, 23, 35, 1, 13699), datetime_complete=datetime.datetime(2022, 12, 1, 23, 39, 9, 65086), params={'d': -0.6717224877811121, 'i': 0.4514747780068583, 'p': 1.0272013905798925}, distributions={'d': FloatDistribution(high=2.0, log=False, low=-2.0, step=None), 'i': FloatDistribution(high=2.0, log=False, low=-2.0, step=None), 'p': FloatDistribution(high=2.0, log=False, low=-2.0, step=None)}, user_attrs={}, system_attrs={}, intermediate_values={}, trial_id=149, state=TrialState.COMPLETE, value=None)
