@@ -89,10 +89,6 @@ def constant_after_transform_source(
 
     control_timestep = source._ts[1]
 
-    if after_time is None:
-        # never becomes constant
-        after_time = new_time_limit - control_timestep
-
     new_ts = np.arange(0.0, new_time_limit, step=control_timestep)
     # TODO
     # exact equality does not work for some reason..
