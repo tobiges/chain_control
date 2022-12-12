@@ -38,7 +38,24 @@ def force_cpu_backend():
     config.update("jax_platforms", "cpu")
 
 
-def train_and_judge(config) -> float:
+def objective(trial) -> float:
+
+# search_space = {
+#     "state_dim": tune.grid_search([80]),
+#     "f_width_size": tune.grid_search([0]),
+#     "f_depth": tune.grid_search([0]),
+#     "g_width_size": tune.grid_search([0]),
+#     "g_depth": tune.grid_search([0]),
+#     "u_transform": tune.grid_search([lambda u: u]),
+# }
+
+    config = {
+        "state_dim": trial.suggest_int('state_dim', 30, 100),
+        "f_width_size": trial.suggest_int('f_width_size', 0, 100),
+        "f_depth": trial.suggest_int('f_depth', 0, 2),
+        "g_width_size": trial.suggest_int('g_width_size', 0, 100),
+        "g_depth": trial.suggest_int('g_depth', 0, 2),
+    }
 
     # Skip invalid
     if config["f_depth"] != 0 and config["f_width_size"] == 0 or config["g_depth"] != 0 and config["g_width_size"] == 0:
@@ -60,7 +77,7 @@ def train_and_judge(config) -> float:
     model = eqx.tree_deserialise_leaves(
         "/data/ba54womo/chain_control/experiments/models/good_env1_model.eqx", model)
 
-    source = collect_random_step_source(env, seeds=list(range(50)), amplitude=10.0)
+    source = collect_random_step_source(env, seeds=list(range(50)), amplitude=5.0)
     #source, _ = sample_feedforward_collect_and_make_source(env, seeds=list(range(25)))
 
     # Append 25 easy sources
@@ -84,7 +101,7 @@ def train_and_judge(config) -> float:
         f_depth=config["f_depth"],
         g_width_size=config["g_width_size"],
         g_depth=config["g_depth"],
-        u_transform=config["u_transform"]
+        u_transform=lambda u:u
     )
 
     controller_dataloader = make_dataloader(
@@ -111,45 +128,22 @@ def train_and_judge(config) -> float:
     controller_performance_sample = collect_exhaust_source(
         AddRefSignalRewardFnWrapper(env, eval_source), fitted_controller)
 
-    # plot_analysis(fitted_controller, env, True, model)
+    plot_analysis(fitted_controller, env, model, f"optuna/{trial.study.study_name}/trial:{trial.number}_state:{config['state_dim']}_fd:{config['f_depth']}_fw:{config['f_width_size']}_gd:{config['g_depth']}_fw:{config['g_width_size']}.png")
+
 
     return calc_reward(controller_performance_sample)
 
 
 
-# search_space = {
-#     "state_dim": tune.grid_search([80]),
-#     "f_width_size": tune.grid_search([0]),
-#     "f_depth": tune.grid_search([0]),
-#     "g_width_size": tune.grid_search([0]),
-#     "g_depth": tune.grid_search([0]),
-#     "u_transform": tune.grid_search([lambda u: u]),
-# }
 
-def objective(trial):
-    force_cpu_backend()
-    # Otherwise the stdout will be messy
-    disable_tqdm()
-    disable_compile_warn()
+force_cpu_backend()
+# Otherwise the stdout will be messy
+disable_tqdm()
+disable_compile_warn()
 
-    config = {
-        "state_dim": trial.suggest_int('state_dim', 10, 100),
-        "f_width_size": 0,
-        "f_depth": 0,
-        "g_width_size": 0,
-        "g_depth": 0,
-        "u_transform": lambda u: u,
-    }
-
-    return train_and_judge(config)
-
-
-# search_space = {
-#     'x': [-50, 0, 50],
-#     'y': [-99, 0, 99]
-# }
-study = optuna.load_study(storage="sqlite:///optuna.db", study_name="test3_study")
-study.optimize(objective, n_trials=5)
+#study = optuna.create_study(storage="sqlite:///optuna_two.db", study_name="nl_ram_study", direction="minimize")
+study = optuna.load_study(storage="sqlite:///optuna_two.db", study_name="nl_ram_study")
+study.optimize(objective, n_trials=100)
 print(study.best_params)
 print(study.best_value)
 print(study.best_trial)

@@ -114,15 +114,25 @@ def sample_feedforward_collect_and_make_source(
     return source, sample, tree_concat(loop_results)
 
 
-def collect_random_step_source(env: dm_env.Environment, seeds: list[int]):
+def collect_random_step_source(env: dm_env.Environment, seeds: list[int], amplitude: float = 3.0):
     ts = env.ts
     yss = np.zeros((len(seeds), len(ts) + 1, 1))
 
     for i, seed in enumerate(seeds):
         np.random.seed(seed)
-        yss[i] = np.random.uniform(-3.0, 3.0)
+        yss[i] = np.random.uniform(-amplitude, amplitude)
 
     _yss = OrderedDict()
     _yss["xpos_of_segment_end"] = yss
     _yss = BatchedTimeSeriesOfRef(_yss)
     return ObservationReferenceSource(_yss, ts=ts)
+
+def append_source(first: ObservationReferenceSource, second: ObservationReferenceSource):
+    
+    # Appends second yss after first yss without replacing
+    yss = OrderedDict()
+    for key in first._yss.keys():
+        yss[key] = np.concatenate([first._yss[key], second._yss[key]], axis=0)
+    
+
+    return ObservationReferenceSource(yss, ts=first._ts)
