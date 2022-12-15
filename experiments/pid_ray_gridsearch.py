@@ -1,5 +1,5 @@
 from typing import Any
-from experiments.helpers import calc_reward, plot_analysis
+from experiments.helpers import calc_reward, get_eval_source, plot_analysis
 
 import numpy as np
 import ray
@@ -77,8 +77,11 @@ def train_and_judge(config) -> float:
 
     controller_trainer.run(500)
 
-    fitted_controller = controller_trainer.trackers[0].best_model()
-    controller_performance_sample = collect_exhaust_source(env_w_source, fitted_controller)
+    fitted_controller = controller_trainer.trackers[0].best_model_or_controller()
+
+    eval_source = get_eval_source(5, 5, 5)
+    controller_performance_sample = collect_exhaust_source(
+        AddRefSignalRewardFnWrapper(env, eval_source), fitted_controller)
 
     plot_analysis(fitted_controller, env, model, f"plot_state:p_{config['p']}_i:{config['i']}_d:{config['d']}.png", False)
 
@@ -97,9 +100,9 @@ def objective(config):
 ray.init()
 
 search_space = {
-    "p": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
-    "i": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
-    "d": tune.grid_search(np.linspace(-2.0, 2.0, 41)),
+    "p": tune.grid_search(np.linspace(-1.0, 1.0, 11)),
+    "i": tune.grid_search(np.linspace(-1.0, 1.0, 11)),
+    "d": tune.grid_search(np.linspace(-1.0, 1.0, 11)),
 }
 
 tuner = tune.Tuner(
