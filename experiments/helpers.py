@@ -25,16 +25,24 @@ def get_eval_source(ff_count=4, caft_count=4, step_count=4):
     for i in range(100, 100 + step_count):
         eval_source = append_source(
             eval_source, collect_random_step_source(env, seeds=[i]))
+    
+    for i in range(100 + step_count, 100 + (2 * step_count)):
+        eval_source = append_source(
+            eval_source, collect_random_step_source(env, seeds=[i], amplitude=15.0))
+    
 
+    # Add two step sources which are not that close to zer
+    
     return eval_source
 
 
 import os
 
-def plot_analysis(controller, env, model, filename):  # IMPORTANT: change for ray
-    #dir = os.path.dirname(filename)
-    #if not os.path.exists(dir):
-    #    os.makedirs(dir)
+def plot_analysis(controller, env, model, filename, mkdir = True):  # IMPORTANT: change for ray
+    if mkdir:
+        dir = os.path.dirname(filename)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
     plt.clf()
     eval_source = get_eval_source(2, 2, 2)
@@ -49,7 +57,7 @@ def plot_analysis(controller, env, model, filename):  # IMPORTANT: change for ra
         env_w_model_w_source = AddRefSignalRewardFnWrapper(env_w_model, eval_source)
         sample_env_w_model = collect_exhaust_source(env_w_model_w_source, controller)
 
-    for i in range(6):
+    for i in range(8):
         plt.plot(sample_env.obs["obs"]["xpos_of_segment_end"][i], label=f"env obs {i}")
         if sample_env_w_model is not None:
             plt.plot(sample_env_w_model.obs["obs"]

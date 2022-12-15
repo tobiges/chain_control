@@ -51,30 +51,17 @@ def train_and_judge(config) -> float:
         env.action_spec(),
         env.observation_spec(),
         env.control_timestep,
-        state_dim=50,
-        f_depth=0, 
+        state_dim=100,
+        f_depth=0,
         u_transform=jnp.arctan
     )
 
     model = eqx.tree_deserialise_leaves(
-        "/data/ba54womo/chain_control/experiments/models/good_env1_model.eqx", model)
+        "/data/ba54womo/chain_control/experiments/models/good_env1_model2.eqx", model)
 
-    source = collect_random_step_source(env, seeds=list(range(50)), amplitude=5.0)
-    #source, _ = sample_feedforward_collect_and_make_source(env, seeds=list(range(25)))
-
-    # Append 25 easy sources
-    #for i in range(25):
-    #    source = append_source(source, collect_random_step_source(env, seeds=[i]))
-
-
-    #if config["constant_after"] > 0:
-    #    source = constant_after_transform_source(source, after_time=config["constant_after"])
-    #elif config["constant_after"] == 0:
-    #    np.random.seed(0xabcdef)
-    #    source = constant_after_transform_source(source, after_time=0, offset=np.random.uniform(-3.0, 3.0))
+    source = collect_random_step_source(env, seeds=list(range(3000)), amplitude=5.0)
 
     env_w_source = AddRefSignalRewardFnWrapper(env, source)
-
 
     controller = make_neural_ode_controller(
         env_w_source.observation_spec(),
@@ -85,34 +72,35 @@ def train_and_judge(config) -> float:
         f_depth=config["f_depth"],
         g_width_size=config["g_width_size"],
         g_depth=config["g_depth"],
-        u_transform=config["u_transform"]
+        u_transform=lambda u:u
     )
 
     controller_dataloader = make_dataloader(
-        source.get_references_for_optimisation(),
+        UnsupervisedDataset(source.get_references_for_optimisation()),
         jrand.PRNGKey(1,),
         n_minibatches=5
     )
 
-
     optimizer = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(1e-3))
 
-
     controller_train_options = TrainingOptionsController(
-    controller_dataloader, optimizer, )
+        controller_dataloader, optimizer, )
 
     controller_trainer = ModelControllerTrainer(
-        model, controller, controller_train_options=controller_train_options, 
+        model, controller, controller_train_options=controller_train_options,
         trackers=[Tracker("train_mse")]
     )
 
-    controller_trainer.run(500)
+    controller_trainer.run(100)
 
     fitted_controller = controller_trainer.trackers[0].best_model_or_controller()
+
     eval_source = get_eval_source(5, 5, 5)
-    controller_performance_sample = collect_exhaust_source(AddRefSignalRewardFnWrapper(env, eval_source), fitted_controller)
-    
-    plot_analysis(fitted_controller, env, model, f"plot.png")
+    controller_performance_sample = collect_exhaust_source(
+        AddRefSignalRewardFnWrapper(env, eval_source), fitted_controller)
+
+    plot_analysis(fitted_controller, env, model, f"plot_state:{config['state_dim']}_fd:{config['f_depth']}_fw:{config['f_width_size']}_gd:{config['g_depth']}_fw:{config['g_width_size']}.png", False)
+
 
     return calc_reward(controller_performance_sample)
 
@@ -139,12 +127,12 @@ ray.init()
 #}
 
 search_space = {
-    "state_dim": tune.grid_search([30, 50, 80]),
+    "state_dim": tune.grid_search([30, 50, 80, 100]),
     "f_width_size": tune.grid_search([0, 1, 5, 10, 30]),
     "f_depth": tune.grid_search([0, 1, 2]),
     "g_width_size": tune.grid_search([0, 1, 5, 10, 30]),
     "g_depth": tune.grid_search([0, 1, 2]),
-    "u_transform": tune.grid_search([lambda u: u, jnp.arctan]),
+    "u_transform": tune.grid_search([lambda u: u]),
 }
 
 #state_dim = 5
@@ -154,7 +142,7 @@ search_space = {
 #g_depth = 10
 
 tuner = tune.Tuner(
-    tune.with_resources(objective, {"cpu": 1}),
+    tune.with_resources(objective, {"cpu": 3}),
     tune_config=tune.TuneConfig(
         num_samples=1,  # <- 1 sample *per* grid point
         time_budget_s=24 * 3600 * 14,  # maximum runtime in seconds

@@ -60,8 +60,8 @@ def objective(trial) -> float:
     # Skip invalid
     if config["f_depth"] != 0 and config["f_width_size"] == 0 or config["g_depth"] != 0 and config["g_width_size"] == 0:
         return 123456789.0
-    # if config["f_depth"] == 0 and config["f_width_size"] > 10 or config["g_depth"] == 0 and config["g_width_size"] > 10:
-    #    return 234567890.0
+    if config["f_depth"] == 0 and config["f_width_size"] > 0 or config["g_depth"] == 0 and config["g_width_size"] > 0:
+        return 234567890.0
 
     env = make_env("two_segments_v1", random=1, time_limit=10.0, control_timestep=0.01)
 
@@ -69,15 +69,15 @@ def objective(trial) -> float:
         env.action_spec(),
         env.observation_spec(),
         env.control_timestep,
-        state_dim=50,
+        state_dim=100,
         f_depth=0,
         u_transform=jnp.arctan
     )
 
     model = eqx.tree_deserialise_leaves(
-        "/data/ba54womo/chain_control/experiments/models/good_env1_model.eqx", model)
+        "/data/ba54womo/chain_control/experiments/models/good_env1_model2.eqx", model)
 
-    source = collect_random_step_source(env, seeds=list(range(50)), amplitude=5.0)
+    source = collect_random_step_source(env, seeds=list(range(3000)), amplitude=5.0)
     #source, _ = sample_feedforward_collect_and_make_source(env, seeds=list(range(25)))
 
     # Append 25 easy sources
@@ -105,7 +105,7 @@ def objective(trial) -> float:
     )
 
     controller_dataloader = make_dataloader(
-        source.get_references_for_optimisation(),
+        UnsupervisedDataset(source.get_references_for_optimisation()),
         jrand.PRNGKey(1,),
         n_minibatches=5
     )
@@ -120,7 +120,7 @@ def objective(trial) -> float:
         trackers=[Tracker("train_mse")]
     )
 
-    controller_trainer.run(500)
+    controller_trainer.run(5)
 
     fitted_controller = controller_trainer.trackers[0].best_model_or_controller()
 
@@ -142,7 +142,7 @@ disable_tqdm()
 disable_compile_warn()
 
 #study = optuna.create_study(storage="sqlite:///optuna_two.db", study_name="nl_ram_study", direction="minimize")
-study = optuna.load_study(storage="sqlite:///optuna_two.db", study_name="nl_ram_study")
+study = optuna.load_study(storage="sqlite:///optuna.db", study_name="nl_many_steps")
 study.optimize(objective, n_trials=100)
 print(study.best_params)
 print(study.best_value)

@@ -63,7 +63,7 @@ env_w_source = AddRefSignalRewardFnWrapper(env, source)
 controller = make_pid_controller(p, i, d, env.control_timestep)
 
 controller_dataloader = make_dataloader(
-    source.get_references_for_optimisation(),
+    UnsupervisedDataset(source.get_references_for_optimisation()),
     jrand.PRNGKey(1,),
     n_minibatches=1
 )

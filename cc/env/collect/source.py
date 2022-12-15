@@ -99,11 +99,6 @@ def constant_after_transform_source(
             arr[:, :switch_idx],
             ((0, 0), (0, len(new_ts) - switch_idx + 1), (0, 0)),
             mode="edge",
-        ) if offset == 0 else np.pad(
-            arr[:, :switch_idx],
-            ((0, 0), (0, len(new_ts) - switch_idx + 1), (0, 0)),
-            mode="constant",
-            constant_values=((0, offset)),
         ),
         source.get_references(),
     )

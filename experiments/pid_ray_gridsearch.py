@@ -1,4 +1,5 @@
 from typing import Any
+from experiments.helpers import calc_reward, plot_analysis
 
 import numpy as np
 import ray
@@ -22,6 +23,7 @@ import jax.numpy as jnp
 from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
 import pprint
 import numpy
+from cc.env.collect.collect import append_source, collect_random_step_source
 
 import matplotlib.pyplot as plt 
 
@@ -41,27 +43,26 @@ def train_and_judge(config) -> float:
         env.action_spec(),
         env.observation_spec(),
         env.control_timestep,
-        state_dim=12,
-        f_integrate_method="EE",
-        f_depth=2,
-        f_width_size=25,
-        g_depth=0,
+        state_dim=100,
+        f_depth=0,
         u_transform=jnp.arctan
     )
 
-    model = eqx.tree_deserialise_leaves("/data/ba54womo/chain_control/cc/examples/env1_model.eqx", model)
+    model = eqx.tree_deserialise_leaves(
+        "/data/ba54womo/chain_control/experiments/models/good_env1_model2.eqx", model)
 
-    source, _ = sample_feedforward_collect_and_make_source(env, seeds=[20])
-    source = constant_after_transform_source(source, after_T = 3.0)
+    # source, _ = sample_feedforward_collect_and_make_source(env, seeds=[20])
+    # source = constant_after_transform_source(source, after_T = 3.0)
+    source = collect_random_step_source(env, seeds=list(range(100)), amplitude=5.0)
 
     env_w_source = AddRefSignalRewardFnWrapper(env, source)
 
     controller = make_pid_controller(config["p"], config["i"], config["d"], env.control_timestep)
 
     controller_dataloader = make_dataloader(
-         source.get_references_for_optimisation(),
+        UnsupervisedDataset(source.get_references_for_optimisation()),
          jrand.PRNGKey(1,),
-         n_minibatches=1
+         n_minibatches=5
     )
 
 
@@ -79,13 +80,10 @@ def train_and_judge(config) -> float:
     fitted_controller = controller_trainer.trackers[0].best_model()
     controller_performance_sample = collect_exhaust_source(env_w_source, fitted_controller)
 
-    plt.plot(controller_performance_sample.obs["obs"]["xpos_of_segment_end"][0], label=f"observation")
-    plt.plot(controller_performance_sample.obs["ref"]["xpos_of_segment_end"][0], label="reference")
-    plt.legend()
-    plt.savefig(f"out_{config['p']}_{config['i']}_{config['d']}.png")
-    plt.clf()
+    plot_analysis(fitted_controller, env, model, f"plot_state:p_{config['p']}_i:{config['i']}_d:{config['d']}.png", False)
 
-    return np.sum(np.abs(controller_performance_sample.rew))
+
+    return calc_reward(controller_performance_sample)
 
 def objective(config):
     force_cpu_backend()
