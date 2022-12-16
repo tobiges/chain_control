@@ -25,7 +25,8 @@ numpy.set_printoptions(threshold=5)
 
 ###### Parameters#################
 
-env_num = 2
+model_num = ""
+env_num = 1
 
 ref = list(range(5000))
 
@@ -61,7 +62,7 @@ model1 = make_neural_ode_model(
 )
 
 model1 = eqx.tree_deserialise_leaves(
-    f"/data/ba54womo/chain_control/experiments/models/good_env{env_num}_model2.eqx", model1)
+    f"/data/ba54womo/chain_control/experiments/models/good_env{env_num}_model{model_num}.eqx", model1)
 
 #source1, _ = sample_feedforward_collect_and_make_source(env1, seeds=[ref])
 #source1 = constant_after_transform_source(source1, after_T = constant_after, new_ts = env1.ts)
@@ -99,7 +100,7 @@ controller_dataloader1 = make_dataloader(
     UnsupervisedDataset(source1.get_references_for_optimisation()),
     jrand.PRNGKey(1,),
     n_minibatches=5,
-    # tree_transform=tree_transform,
+    tree_transform=tree_transform,
 )
 optimizer1 = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(1e-3))
 controller_train_options1 = TrainingOptionsController(

@@ -50,7 +50,7 @@ def train_and_judge(config) -> float:
     )
 
     model = eqx.tree_deserialise_leaves(
-        "/data/ba54womo/chain_control/experiments/models/good_env1_model2.eqx", model)
+        "/data/ba54womo/chain_control/experiments/models/good_env2_model2.eqx", model)
 
     source = collect_random_step_source(env, seeds=list(range(100)), amplitude=5.0)
 
