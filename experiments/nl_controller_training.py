@@ -25,20 +25,21 @@ numpy.set_printoptions(threshold=5)
 
 ###### Parameters#################
 
-model_num = ""
 env_num = 1
 
-ref = list(range(5000))
+ref = list(range(3000))
 
 constant_after = 3.0
 
-iterations = 500
+iterations = 10
 
 state_dim = 80
 f_width_size = 0
 f_depth = 0
 g_width_size = 0
 g_depth = 0
+
+n_minibatch = 600
 
 # Baseline:
 # state_dim = 5
@@ -62,7 +63,7 @@ model1 = make_neural_ode_model(
 )
 
 model1 = eqx.tree_deserialise_leaves(
-    f"/data/ba54womo/chain_control/experiments/models/good_env{env_num}_model{model_num}.eqx", model1)
+    f"/data/ba54womo/chain_control/experiments/models/good_env{env_num}_model2.eqx", model1)
 
 #source1, _ = sample_feedforward_collect_and_make_source(env1, seeds=[ref])
 #source1 = constant_after_transform_source(source1, after_T = constant_after, new_ts = env1.ts)
@@ -99,7 +100,7 @@ def tree_transform(key, ref, bs):
 controller_dataloader1 = make_dataloader(
     UnsupervisedDataset(source1.get_references_for_optimisation()),
     jrand.PRNGKey(1,),
-    n_minibatches=5,
+    n_minibatches=n_minibatch,
     tree_transform=tree_transform,
 )
 optimizer1 = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(1e-3))
@@ -111,12 +112,14 @@ controller_trainer1 = ModelControllerTrainer(
     trackers=[Tracker("train_mse")],
     loggers=[DictLogger()]
 )
+
+print("got here")
 controller_trainer1.run(iterations)
 
 fitted_controller1 = controller_trainer1.trackers[0].best_model_or_controller()
 # env1_w_video = RecordVideoWrapper(env1_w_source, width=1280, height=720, cleanup_imgs=False)
 
-plot_analysis(fitted_controller1, env1, model1, f"images/plot_env{env_num}_{len(ref)}ref_{iterations}it.png", f"two_segments_v{env_num}")
+plot_analysis(fitted_controller1, env1, model1, f"images/plot_env{env_num}_{len(ref)}ref_{iterations}_it_{n_minibatch}_minibatch.png", f"two_segments_v{env_num}")
 
 #plt.plot(controller_performance_sample1.obs["obs"]["xpos_of_segment_end"][0], label="obs")
 #plt.plot(controller_performance_sample1.obs["ref"]["xpos_of_segment_end"][0], label="reference")
