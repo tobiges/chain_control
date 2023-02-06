@@ -7,7 +7,6 @@ import dm_env
 from acme.wrappers import SinglePrecisionWrapper
 from dm_control.rl import control
 
-from .register import _register
 from .wrappers import (
     DelayActionWrapper,
     TimelimitControltimestepWrapper,
