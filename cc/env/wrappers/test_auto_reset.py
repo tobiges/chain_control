@@ -2,6 +2,7 @@
 # that can be used
 
 import numpy as np
+from cc.env.sample_envs import TWO_SEGMENT_V1
 import pytest
 
 from ...utils import tree_equal
@@ -12,8 +13,8 @@ from .test_replace_physics_by_model import dummy_model
 
 N_STEPS_FOR_EPISODE = 1001
 action = np.array([1.0])
-env_unwrapped = make_unwrapped_env("two_segments_v1", random=1)
-env = make_env("two_segments_v1", random=1)
+env_unwrapped = make_unwrapped_env(TWO_SEGMENT_V1, random=1)
+env = make_env(TWO_SEGMENT_V1, random=1)
 
 
 def unroll_env1(env):

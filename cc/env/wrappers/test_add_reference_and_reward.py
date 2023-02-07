@@ -1,6 +1,8 @@
 from absl.testing import absltest
 from dm_env import test_utils
 
+from cc.env.sample_envs import TWO_SEGMENT_V1
+
 from ..collect import sample_feedforward_collect_and_make_source
 from ..make_env import make_env
 from .add_reference_and_reward import AddRefSignalRewardFnWrapper
@@ -9,7 +11,7 @@ LENGTH_ACTION_SEQUENCE = 2001
 
 
 def dummy_env():
-    return make_env("two_segments_v1", random=1)
+    return make_env(TWO_SEGMENT_V1, random=1)
 
 
 def dummy_source(env):

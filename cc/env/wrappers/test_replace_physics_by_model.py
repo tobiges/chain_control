@@ -1,6 +1,8 @@
 from absl.testing import absltest
 from dm_env import test_utils
 
+from cc.env.sample_envs import TWO_SEGMENT_V1
+
 from ...examples.neural_ode_model_compact_example import make_neural_ode_model
 from ..make_env import make_env
 from .replace_physics_by_model import ReplacePhysicsByModelWrapper
@@ -9,7 +11,7 @@ LENGTH_ACTION_SEQUENCE = 2001
 
 
 def dummy_env():
-    return make_env("two_segments_v1", random=1)
+    return make_env(TWO_SEGMENT_V1, random=1)
 
 
 def dummy_model():

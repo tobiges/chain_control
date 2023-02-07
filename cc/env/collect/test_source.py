@@ -2,6 +2,7 @@ import copy
 
 import jax.numpy as jnp
 import numpy as np
+from cc.env.sample_envs import TWO_SEGMENT_V1
 import pytest
 
 from ..make_env import make_env
@@ -10,7 +11,7 @@ from .source import constant_after_transform_source
 
 
 def dummy_env():
-    return make_env("two_segments_v1", random=1)
+    return make_env(TWO_SEGMENT_V1, random=1)
 
 
 def test_source():

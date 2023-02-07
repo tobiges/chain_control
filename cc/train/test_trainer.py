@@ -5,6 +5,7 @@ import optax
 from cc.env import make_env
 from cc.env.collect import sample_feedforward_and_collect
 from cc.env.collect.collect import collect_random_step_source
+from cc.env.sample_envs import TWO_SEGMENT_V1
 from cc.env.wrappers import AddRefSignalRewardFnWrapper
 from cc.examples.neural_ode_controller_compact_example import make_neural_ode_controller
 from cc.examples.neural_ode_model_compact_example import make_neural_ode_model
@@ -28,7 +29,7 @@ def test_trainer():
     control_timestep = 0.01
 
     env = make_env(
-        "two_segments_v1",
+        TWO_SEGMENT_V1,
         time_limit=time_limit,
         control_timestep=control_timestep,
         random=1,

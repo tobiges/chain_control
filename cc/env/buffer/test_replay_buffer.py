@@ -1,4 +1,5 @@
 import jax.random as jrand
+from cc.env.sample_envs import TWO_SEGMENT_V1
 import pytest
 import ray
 from acme import EnvironmentLoop
@@ -14,7 +15,7 @@ from .sampler import Sampler
 
 def env_fn(time_limit, control_timestep):
     return make_env(
-        "two_segments_v1",
+        TWO_SEGMENT_V1
         random=1,
         time_limit=time_limit,
         control_timestep=control_timestep,

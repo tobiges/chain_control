@@ -1,3 +1,4 @@
+from cc.env.sample_envs import TWO_SEGMENT_V1
 from ..env import make_env
 from ..env.collect import collect, sample_feedforward_collect_and_make_source
 from ..env.wrappers import AddRefSignalRewardFnWrapper
@@ -9,7 +10,7 @@ from .pid_controller import make_pid_controller
 
 
 def dummy_env():
-    return make_env("two_segments_v1", random=1)
+    return make_env(TWO_SEGMENT_V1, random=1)
 
 
 def test_controllers():
