@@ -21,7 +21,7 @@ class ModuleActor(core.Actor):
         ),
         adder: Optional[AbstractAdder] = None,
         reset_key=False,
-        jit=True,
+        jit=False,
     ):
 
         self.action_spec = action_spec

@@ -1,14 +1,18 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import jax.tree_util as jtu
+import jax.numpy as jnp
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
+
+from cc.core.abstract import AbstractController
 
 from ...core import AbstractObservationReferenceSource
 from ...core.types import (
     BatchedTimeSeriesOfAct,
     BatchedTimeSeriesOfRef,
+    PyTree,
     TimeSeriesOfRef,
 )
 from ...utils import to_jax, to_numpy, tree_slice
@@ -38,6 +42,32 @@ class ObservationReferenceSource(AbstractObservationReferenceSource):
 
     def change_reference_of_actor(self, i_actor: int) -> None:
         self._i_actor = i_actor
+
+class SourceController(AbstractController):
+    source: ObservationReferenceSource
+    it: int
+
+    def __init__(
+        self,
+        source: ObservationReferenceSource,
+        it: int = 0,
+    ):
+        self.source = source
+        self.it = it
+
+    def step(
+        self, x: PyTree[jnp.ndarray]
+    ) -> Tuple["AbstractController", PyTree[jnp.ndarray]]:
+
+        return SourceController(self.source, self.it + 1), jnp.asarray([self.source._uss[0][self.it][0]])
+
+
+    def reset(self) -> "AbstractController":
+        return SourceController(self.source, 0)
+
+    def grad_filter_spec(self):
+        return False
+        
 
 
 default_kernel = 0.15 * RBF(0.75)
