@@ -89,7 +89,7 @@ class ModelControllerTrainer:
         controller_train_options: Optional[TrainingOptionsController] = None,
         loggers: list[Logger] = [],
         trackers: list[Tracker] = [],
-        jit: bool = True,
+        jit: bool = False,
     ):
 
         assert not (
