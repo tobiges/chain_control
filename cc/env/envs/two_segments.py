@@ -14,7 +14,7 @@ from .common import ASSETS, read_model
 
 
 class Color(Enum):
-    SELF = "self"
+    # SELF = "self"
     RED = "red"
     GREEN = "green"
     BLUE = "blue"
@@ -44,7 +44,7 @@ class CartParams:
     name: str
     slider_joint_params: JointParams
     hinge_joint_params: JointParams
-    material: Color = Color.SELF
+    material: Color = Color.GOLD
 
 
 def generate_body(
