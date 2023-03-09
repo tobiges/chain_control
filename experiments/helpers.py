@@ -58,7 +58,10 @@ def plot_analysis(controller, model, filename, mkdir=True, f_env=TWO_SEGMENT_V1)
         env_w_model = ReplacePhysicsByModelWrapper(local_env, model)
         env_w_model_w_source = AddRefSignalRewardFnWrapper(env_w_model, eval_source)
         sample_env_w_model, _ = collect_exhaust_source(env_w_model_w_source, controller)
-
+    
+    rew = calc_reward(sample_env)
+    print(rew)
+        
     for i in range(8):
         plt.plot(sample_env.obs["obs"]["xpos_of_segment_end"][i], label=f"env obs {i}")
         if sample_env_w_model is not None:
@@ -67,7 +70,7 @@ def plot_analysis(controller, model, filename, mkdir=True, f_env=TWO_SEGMENT_V1)
         plt.plot(sample_env.obs["ref"]["xpos_of_segment_end"][i], label=f"ref {i}")
 
         plt.xlabel("timesteps")
-        plt.ylabel(f"x position, r: {calc_reward(sample_env)}")
+        plt.ylabel(f"x position, r: {rew}")
         plt.legend()
         filename = filename.removesuffix(".png")
         plt.savefig(f"{filename}_source:{i}.png")

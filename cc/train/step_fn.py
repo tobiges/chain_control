@@ -196,7 +196,6 @@ def make_step_fn_controller(
             refsshat = eqx.filter_vmap(controller.unroll(model, merge_x_y))(refss)
             loss_name_and_value = options.loss_fn(refss, refsshat)
             log_of_loss_values.update({model_name: loss_name_and_value})
-            print("!!!", model_name , loss_name_and_value)
 
 
         regu_value, log_of_regus = compute_regularisers(
@@ -205,7 +204,6 @@ def make_step_fn_controller(
         logs.update(log_of_regus)
 
         loss_value = options.loss_fn_reduce_along_models(log_of_loss_values)
-        print("???", loss_value)
 
         logs.update(loss_value)
 
@@ -217,13 +215,9 @@ def make_step_fn_controller(
                 )
         logs.update(log_of_loss_values_flat)
         
-        # print("!!!", loss_value)
         loss_value = batch_concat(loss_value, 0) + regu_value
-        print("xxx", regu_value, loss_value)
         logs.update({"loss": loss_value})
         assert loss_value.ndim == 0 or loss_value.ndim == 1
-        
-        # print("?!", logs)
 
         return jnp.squeeze(loss_value), logs
 
@@ -239,7 +233,6 @@ def make_step_fn_controller(
             assert isinstance(batch_of_refss, UnsupervisedDataset)
             (loss, logs), grads = loss_fn_controller(controller, batch_of_refss.refss)
 
-            # print("!?", grads)
             logs.update(dict(train_loss=loss))
             minibatched_logs.append(logs)
 
