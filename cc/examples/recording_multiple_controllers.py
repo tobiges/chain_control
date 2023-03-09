@@ -42,7 +42,7 @@ controller2 = make_neural_ode_controller(
 controller_e1 = eqx.tree_deserialise_leaves(
     f"controller1.eqx", controller1)
 controller_e2 = eqx.tree_deserialise_leaves(
-    f"controller2.eqx", controller2)
+    f"controller4.eqx", controller2)
 
 
 
@@ -69,4 +69,4 @@ wrapper = MultipleControllerWrapper(controller1, controller2)
 video_wrapped_env = VideoWrapper( 
    video_env_w_source, camera_id="skyview", width=1920, height=1080, path="./video")
 
-controller_performance_sample = collect_exhaust_source(video_env_w_source, wrapper)
+controller_performance_sample = collect_exhaust_source(video_wrapped_env, wrapper)

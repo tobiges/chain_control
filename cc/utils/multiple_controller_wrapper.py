@@ -6,10 +6,8 @@ from cc.core import AbstractController
 class MultipleControllerWrapper(AbstractController):
     controllers: tuple[AbstractController]
 
-    def __init__(self, *controllers):
-        self.controllers = tuple(
-            *controllers
-        )  # pytype complains cause `controllers` is generator
+    def __init__(self, *controllers: AbstractController):
+        self.controllers = controllers
 
     def step(self, x):
         actions = [
