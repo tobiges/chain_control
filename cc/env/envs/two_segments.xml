@@ -35,6 +35,8 @@
     <geom name="x-marker10" type="box" pos="8 0 3" size="0.1 0.2 0.2" material="self" />
     <geom name="x-marker11" type="box" pos="10 0 3" size="0.1 0.2 0.2" material="self" />
 
+    <!-- Markers -->
+
     <!-- Bodies -->
   </worldbody>
 

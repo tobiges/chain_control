@@ -165,15 +165,15 @@ model4 = make_neural_ode_model(
 )
 
 controller_all = eqx.tree_deserialise_leaves(
-    f"controllers/multi_model_controller_all.eqx", controllerall)
+    f"controllers/mm_state_80_env1.eqx", controllerall)
 controller_e1 = eqx.tree_deserialise_leaves(
-    f"controllers/multi_model_controller_e1.eqx", controller1)
+    f"controllers/mm_state_80_env2.eqx", controller1)
 controller_e2 = eqx.tree_deserialise_leaves(
-    f"controllers/multi_model_controller_e2.eqx", controller2)
+    f"controllers/mm_state_80_env3.eqx", controller2)
 controller_e3 = eqx.tree_deserialise_leaves(
-    f"controllers/multi_model_controller_e3.eqx", controller3)
+    f"controllers/mm_state_80_env4.eqx", controller3)
 controller_e4 = eqx.tree_deserialise_leaves(
-    f"controllers/multi_model_controller_e4.eqx", controller4)
+    f"controllers/mm_state_80_envall.eqx", controller4)
 
 model_e1 = eqx.tree_deserialise_leaves(
     f"models/multi_model_e1.eqx", model1)

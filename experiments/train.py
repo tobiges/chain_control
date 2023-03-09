@@ -2,7 +2,7 @@ from cc.env import *
 from cc import save, load
 from cc.env.collect import collect, collect_exhaust_source,  sample_feedforward_collect_and_make_source
 from cc.env.collect.collect import collect_exhaust_source, sample_feedforward_collect_and_make_source
-from cc.env.collect.circus import random_steps_source
+from cc.env.collect.circus import random_steps_source, collect_random_step_source
 
 from cc.env.collect.source import *
 from cc.env.sample_envs import TWO_SEGMENT_V1
@@ -116,7 +116,7 @@ model_e4 = make_neural_ode_model(
 model_e4 = eqx.tree_deserialise_leaves(
     f"models/multi_model_e4.eqx", model_e4)
 
-source = random_steps_source(env, seeds=ref, min_abs_amplitude=3.0, max_abs_amplitude=3.0)
+source = collect_random_step_source(env, seeds=ref)
 
 env_w_source = AddRefSignalRewardFnWrapper(env, source)
 

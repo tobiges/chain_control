@@ -4,13 +4,13 @@ import dm_env
 import jax
 import numpy as np
 from tree_utils import tree_batch
-
+from collections import OrderedDict
 from ...core.types import BatchedTimeSeriesOfRef
 from ...utils import timestep_array_from_env
 from .collect import append_source
 from .source import ObservationReferenceSource
 
-
+from cc.utils.utils import timestep_array_from_env
 def random_steps_source(
     env: dm_env.Environment,
     seeds: list[int],
@@ -35,6 +35,18 @@ def random_steps_source(
     _yss = BatchedTimeSeriesOfRef(tree_batch(yss))
     return ObservationReferenceSource(_yss, ts=ts)
 
+def collect_random_step_source(env: dm_env.Environment, seeds: list[int], amplitude: float = 3.0):
+    ts = timestep_array_from_env(env)
+    yss = np.zeros((len(seeds), len(ts) + 1, 1))
+
+    for i, seed in enumerate(seeds):
+        np.random.seed(seed)
+        yss[i] = np.random.uniform(-amplitude, amplitude)
+
+    _yss = OrderedDict()
+    _yss["xpos_of_segment_end"] = yss
+    _yss = BatchedTimeSeriesOfRef(_yss)
+    return ObservationReferenceSource(_yss, ts=ts)
 
 def high_steps_source(env, amplitude: float = 6.0):
     source = random_steps_source(env, seeds=[0, 1])

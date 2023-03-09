@@ -46,6 +46,11 @@ class CartParams:
     hinge_joint_params: JointParams
     material: Color = Color.SELF
 
+@dataclass
+class Marker:
+    pos: float = 0
+    material: Color = Color.SELF
+
 
 def generate_body(
     name: str,
@@ -92,6 +97,19 @@ def generate_camera(name: str) -> bytes:
     """.encode()
 
 
+def generate_marker(
+    name: str,
+    pos: float,
+    material: Color,
+) -> bytes:
+    """
+    Generates a marker.
+    """
+    return rf"""
+        <geom name="x-marker-generated{name}" priority="1" type="box" pos="{pos} 0 3" size="0.1 0.2 0.2" material={material.value}" />
+    """.encode()
+
+
 class SegmentPhysics(mujoco.Physics):
     obs_cart_names: List[str]
 
@@ -111,7 +129,10 @@ class SegmentPhysics(mujoco.Physics):
         self.set_control(u)
 
 
-def _load_physics(cart_params: Union[List[CartParams], CartParams]) -> SegmentPhysics:
+def _load_physics(
+    cart_params: Union[List[CartParams], CartParams],
+    marker_params: Optional[List[Marker]],              
+) -> SegmentPhysics:
     """
     Creates a mujoco physics object using the provided cart parameters.
     """
@@ -128,6 +149,7 @@ def _load_physics(cart_params: Union[List[CartParams], CartParams]) -> SegmentPh
     bodies = b""
     motors = b""
     cameras = b""
+    markers = b""
 
     for cart_param in cart_params:
         bodies += generate_body(
@@ -139,12 +161,22 @@ def _load_physics(cart_params: Union[List[CartParams], CartParams]) -> SegmentPh
         motors += generate_motor(cart_param.name)
         cameras += generate_camera(cart_param.name)
 
+    if marker_params:
+        for i, marker_param in enumerate(marker_params):
+            markers += generate_marker(
+                f"{i}",
+                marker_param.pos,
+                marker_param.material,
+            )
+
     # Insert bodies into template
     xml_content = xml_content.replace(b"<!-- Bodies -->", bodies)
     # Insert motors into template
     xml_content = xml_content.replace(b"<!-- Motors -->", motors)
     # Insert cameras into template
     xml_content = xml_content.replace(b"<!-- Cameras -->", cameras)
+    # Insert markers into template
+    xml_content = xml_content.replace(b"<!-- Markers -->", markers)
 
     seg_phy = SegmentPhysics.from_xml_string(xml_content, assets=ASSETS)
     seg_phy.set_obs_cart_names([cart_param.name for cart_param in cart_params])
@@ -152,23 +184,30 @@ def _load_physics(cart_params: Union[List[CartParams], CartParams]) -> SegmentPh
 
 
 def load_physics(
-    cart_params: Union[List[CartParams], CartParams]
+    cart_params: Union[List[CartParams], CartParams],
+    marker_params: Optional[List[Marker]],
 ) -> Callable[[], mujoco.Physics]:
     def load_physics_helper():
-        return _load_physics(cart_params)
+        return _load_physics(cart_params, marker_params)
 
     return load_physics_helper
 
 
-def generate_env_config(cart_params: Union[List[CartParams], CartParams]):
+def generate_env_config(
+    cart_params: Union[List[CartParams], CartParams],
+    marker_params: Optional[List[Marker]] = None,
+):
     return EnvConfig(
-        load_physics=load_physics(cart_params),
+        load_physics=load_physics(cart_params, marker_params),
         task=SegmentTask,
     )
 
 
 def generate_duplicate_env_config(
-    cart_params: CartParams, num: int, materials: Optional[List[Color]] = None
+    cart_params: CartParams,
+    num: int,
+    materials: Optional[List[Color]] = None, 
+    marker_params: Optional[List[Marker]] = None,
 ):
     if materials is None:
         materials = [e for e in Color]
@@ -187,7 +226,8 @@ def generate_duplicate_env_config(
                     }
                 )
                 for i, material in enumerate(materials)
-            ]
+            ],
+            marker_params,
         ),
         task=SegmentTask,
     )

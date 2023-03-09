@@ -1,7 +1,7 @@
 import os
 from cc.env import make_env, make_env_from_config
 from cc.env.collect.collect import append_source, collect_exhaust_source, sample_feedforward_collect_and_make_source
-from cc.env.collect.circus import random_steps_source
+from cc.env.collect.circus import random_steps_source, collect_random_step_source
 from matplotlib import pyplot as plt
 import numpy as np
 import equinox as eqx
