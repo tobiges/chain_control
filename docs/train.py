@@ -64,7 +64,7 @@ model_e1 = make_neural_ode_model(
 )
 
 model_e1 = eqx.tree_deserialise_leaves(
-    f"/home/tobi/uni/aibe/chain_control/docs/model_e1.eqx", model_e1)
+    f"/mnt/c/Users/kevin/Files/University_New/AIBE/chain_control/docs/multi_model_e1.eqx", model_e1)
 
 
 
@@ -78,7 +78,7 @@ model_e2 = make_neural_ode_model(
 )
 
 model_e2 = eqx.tree_deserialise_leaves(
-    f"/home/tobi/uni/aibe/chain_control/docs/model_e2.eqx", model_e2)
+    f"/mnt/c/Users/kevin/Files/University_New/AIBE/chain_control/docs/multi_model_e2.eqx", model_e2)
 
 
 model_e3 = make_neural_ode_model(
@@ -91,7 +91,7 @@ model_e3 = make_neural_ode_model(
 )
 
 model_e3 = eqx.tree_deserialise_leaves(
-    f"/home/tobi/uni/aibe/chain_control/docs/model_e3.eqx", model_e3)
+    f"/mnt/c/Users/kevin/Files/University_New/AIBE/chain_control/docs/multi_model_e3.eqx", model_e3)
 
 
 model_e4 = make_neural_ode_model(
@@ -104,7 +104,7 @@ model_e4 = make_neural_ode_model(
 )
 
 model_e4 = eqx.tree_deserialise_leaves(
-    f"/home/tobi/uni/aibe/chain_control/docs/model_e4.eqx", model_e4)
+    f"/mnt/c/Users/kevin/Files/University_New/AIBE/chain_control/docs/multi_model_e4.eqx", model_e4)
 
 source = collect_random_step_source(env, seeds=ref)
 
@@ -155,19 +155,19 @@ def our_loss_fn_reduce_along_models(log_of_loss_values):
 
 controller_train_options = TrainingOptionsController(
     controller_dataloader, optimizer, 
-    # loss_fn_reduce_along_models=our_loss_fn_reduce_along_models,
+    loss_fn_reduce_along_models=our_loss_fn_reduce_along_models,
 )
 
 controller_trainer = ModelControllerTrainer(
     model = {
         "model_e1" : model_e1,
-        # "model_e2" : model_e2,
-        # "model_e3" : model_e3,
-        # "model_e4" : model_e4,
+        "model_e2" : model_e2,
+        "model_e3" : model_e3,
+        "model_e4" : model_e4,
     }, 
     controller=controller,
     controller_train_options=controller_train_options, 
-    trackers = [Tracker("model_e1", "train_mse")],
+    trackers = [Tracker("mse_all")],
     loggers=[DictLogger()],
 )
 
@@ -175,4 +175,4 @@ controller_trainer = ModelControllerTrainer(
 controller_trainer.run(iterations)
 
 
-eqx.tree_serialise_leaves(f"yep/controller_env_1.eqx", controller_trainer.trackers[0].best_model_or_controller())
+eqx.tree_serialise_leaves(f"multi_model_controller_all.eqx", controller_trainer.trackers[0].best_model_or_controller())

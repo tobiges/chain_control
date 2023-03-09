@@ -52,7 +52,7 @@ env4 = generate_env_config(CartParams(
 ))
 
 
-env = make_env(env3, random=1)
+env = make_env(env4, random=1)
 
 # %%
 sample_train = sample_feedforward_and_collect(
@@ -167,4 +167,4 @@ model_trainer.trackers[0].best_metric()
 fitted_model = model_trainer.trackers[0].best_model_or_controller()
 
 # save model for usage in next notebook
-eqx.tree_serialise_leaves(f"model_new_e3.eqx", fitted_model)
+eqx.tree_serialise_leaves(f"multi_model_e4.eqx", fitted_model)
